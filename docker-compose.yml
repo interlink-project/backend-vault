@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+
+  vault:
+    image: vault:1.9.10
+    container_name: vault
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault-data:/vault/data:rw
+      - ./config/:/vault/config.d:rw
+#      - ./certs/:/vault/certs:rw
+    entrypoint: vault server -config=/vault/config.d/vault.hcl
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.vault.rule=Host(`dev.interlink-project.eu`) && PathPrefix(`/ui`)
+      - traefik.http.routers.vault.service=vault
+      - traefik.http.services.vault.loadbalancer.server.port=8200
+      - traefik.http.routers.vault.entrypoints=websecure
+      - traefik.http.routers.vault.tls.certresolver=letsencrypt
+      - traefik.http.routers.vault.tls=true
+      - traefik.http.routers.vault.middlewares=vault-stripprefix
+      - traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes='/ui'
+    networks:
+      - traefik-public
+    logging:
+      driver: "json-file"
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+networks:
+  traefik-public:
+    external: true
+
+volumes:
+  vault-data:
