@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.3"
 services:
 
   vault:
@@ -15,16 +15,21 @@ services:
 #      - ./certs/:/vault/certs:rw
     entrypoint: vault server -config=/vault/config.d/vault.hcl
     labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik-public
-      - traefik.http.routers.vault.rule=Host(`dev.interlink-project.eu`) && PathPrefix(`/ui`)
-      - traefik.http.routers.vault.service=vault
-      - traefik.http.services.vault.loadbalancer.server.port=8200
-      - traefik.http.routers.vault.entrypoints=websecure
-      - traefik.http.routers.vault.tls.certresolver=letsencrypt
-      - traefik.http.routers.vault.tls=true
-      - traefik.http.routers.vault.middlewares=vault-stripprefix
-      - traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes='/ui'
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.vault.rule=Host(`${PLATFORM_STACK_NAME}`) && (PathPrefix(`/ui/`) || PathPrefix(`/v1/`) || PathPrefix(`/vault`)  )"
+      - "traefik.http.routers.vault.service=vault"
+      - "traefik.http.services.vault.loadbalancer.server.port=8200"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.vault.tls=true"
+#      - "traefik.http.routers.vault.middlewares=vault-stripprefix"
+#      - "traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes='/ui/'"
+
+      - "traefik.http.routers.vault.middlewares=add-context"
+      - "traefik.http.middlewares.add-context.redirectregex.regex=^https:\\/\\/([^\\/]+)\\/vault\\/?$$"
+      - "traefik.http.middlewares.add-context.redirectregex.replacement=https://$$1/ui/vault"
+
     networks:
       - traefik-public
     logging:
