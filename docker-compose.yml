@@ -5,8 +5,8 @@ services:
     image: vault:1.9.10
     container_name: vault
     restart: unless-stopped
-    ports:
-      - "8200:8200"
+#    ports:
+#      - "8200:8200"
     cap_add:
       - IPC_LOCK
     volumes:
