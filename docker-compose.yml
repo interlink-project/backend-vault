@@ -17,7 +17,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      - "traefik.http.routers.vault.rule=Host(`${HOSTNAME}`) && (PathPrefix(`/ui/`) || PathPrefix(`/v1/`) || PathPrefix(`/vault`)  )"
+      - "traefik.http.routers.vault.rule=Host(`${HOSTNAME}`)"
       - "traefik.http.routers.vault.service=vault"
       - "traefik.http.services.vault.loadbalancer.server.port=8200"
       - "traefik.http.routers.vault.entrypoints=websecure"
@@ -27,7 +27,7 @@ services:
 #      - "traefik.http.middlewares.vault-stripprefix.stripprefix.prefixes='/ui/'"
 
       - "traefik.http.routers.vault.middlewares=add-context"
-      - "traefik.http.middlewares.add-context.redirectregex.regex=^https:\\/\\/([^\\/]+)\\/vault\\/?$$"
+      - "traefik.http.middlewares.add-context.redirectregex.regex=^https:\\/\\/([^\\/]+)\\/\\/?$$"
       - "traefik.http.middlewares.add-context.redirectregex.replacement=https://$$1/ui/vault"
 
     networks:
